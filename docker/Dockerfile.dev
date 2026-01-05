@@ -1,0 +1,28 @@
+FROM golang:1.21-bullseye
+
+# Install development tools
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    make \
+    sqlite3 \
+    vim \
+    default-mysql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy go mod files
+COPY go.mod go.sum* ./
+
+# Download dependencies
+RUN go mod download || true
+
+# Copy source code
+COPY . .
+
+# Build the binary
+RUN go build -o /bin/goParseInnodb ./cmd/goParseInnodb
+
+# ENTRYPOINT ["/bin/bash"]
+CMD ["sleep", "infinity"]

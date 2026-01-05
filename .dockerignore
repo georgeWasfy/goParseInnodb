@@ -1,0 +1,6 @@
+output/
+.git/
+.gitignore
+*.db
+*.log
+*.md
