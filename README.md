@@ -78,6 +78,10 @@ docker-compose exec app bash -c "go build -o /bin/goParseInnodb ./cmd/goParseInn
 - `docker/` - Docker configuration
 - `output/` - Output files
 
+## References
+- `https://blog.jcole.us/innodb/` - Amazing set of articles about innodb internal architecture and data representation
+
+
 
 
 
