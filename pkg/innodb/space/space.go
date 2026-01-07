@@ -1,19 +1,25 @@
-package innodb
+package space
 
 import (
 	"os"
 	"io"
 	"fmt"
+	"goParseInnodb/pkg/innodb/parse"
 )
 
 const PAGE_SIZE = 16384
+
+type PageWrapper struct {
+	Number int64
+	Page   any
+	Err    error
+}
 
 type Space struct {
 	Path  string
 	Size  int64
 	Pages int64
 }
-
 
 func OpenSpace(path string) (*Space, error) {
 	stat, err := os.Stat(path)
@@ -30,11 +36,10 @@ func OpenSpace(path string) (*Space, error) {
 	}, nil
 }
 
-func (s *Space) OpenPage(pageNumber int64) (*Page, error) {
+func (s *Space) OpenPage(pageNumber int64) (any, error) {
 	offset := pageNumber * PAGE_SIZE
-
 	if offset < 0 || offset+PAGE_SIZE > s.Size {
-		return nil, nil
+		return nil, fmt.Errorf("invalid page number %d", pageNumber)
 	}
 
 	f, err := os.Open(s.Path)
@@ -44,17 +49,19 @@ func (s *Space) OpenPage(pageNumber int64) (*Page, error) {
 	defer f.Close()
 
 	buf := make([]byte, PAGE_SIZE)
-
 	_, err = f.ReadAt(buf, offset)
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
-	page, err := NewPage(buf)
+
+	pg, err := parse.ParsePage(buf)
 	if err != nil {
-		return nil, fmt.Errorf("page parse failed: %w", err)
+		return nil, fmt.Errorf("failed to parse page %d: %w", pageNumber, err)
 	}
-	return page, nil
+
+	return pg, nil
 }
+
 
 func (s *Space) IteratePages() <-chan PageWrapper {
 	ch := make(chan PageWrapper)
@@ -63,13 +70,13 @@ func (s *Space) IteratePages() <-chan PageWrapper {
 		defer close(ch)
 
 		for pageNumber := int64(0); pageNumber < s.Pages; pageNumber++ {
-			page, err := s.OpenPage(pageNumber)
+			p, err := s.OpenPage(pageNumber)
 			if err != nil {
-				ch <- PageWrapper{Err: err}
+				ch <- PageWrapper{Number: pageNumber, Err: err}
 				return
 			}
-			if page != nil {
-				ch <- PageWrapper{Number: pageNumber, Page: page}
+			if p != nil {
+				ch <- PageWrapper{Number: pageNumber, Page: p}
 			}
 		}
 	}()

@@ -1,8 +1,10 @@
-package innodb
+package page
 
 import (
 	"fmt"
 )
+
+const PAGE_SIZE = 16384
 
 type PageType uint16
 type Page struct {
@@ -10,11 +12,7 @@ type Page struct {
 	FilHeader  *FilHeader
 	FilTrailer *FilTrailer
 }
-type PageWrapper struct {
-	Number int64
-	Page   *Page
-	Err    error
-}
+
 func NewPage(data []byte) (*Page, error) {
 	if len(data) < PAGE_SIZE {
 		return nil, fmt.Errorf("page data too short: got %d bytes", len(data))

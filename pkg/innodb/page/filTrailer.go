@@ -1,4 +1,4 @@
-package innodb
+package page
 
 import (
 	"encoding/binary"

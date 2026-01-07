@@ -1,4 +1,4 @@
-package innodb
+package page
 
 import (
 	"encoding/binary"
@@ -31,7 +31,7 @@ type FilHeader struct {
 }
 
 func NewFilHeader(data []byte) (*FilHeader,error) {
-		if len(data) < FIL_HEADER_SIZE {
+	if len(data) < FIL_HEADER_SIZE {
 		return nil, fmt.Errorf("data too short for fil header: got %d bytes", len(data))
 	}
 

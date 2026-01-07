@@ -1,7 +1,8 @@
-package innodb
+package fsphdr
 
 import (
 	"io"
+	"encoding/binary"
 )
 const (
 	SIZE_LIST_NODE = 12
@@ -20,9 +21,9 @@ type ListNode struct {
 	NextOffset     uint16
 }
 
-func NewListNode(data []byte, offset int) (*ListNode, int, error) {
+func NewListNode(data []byte, offset int) (*ListNode, error) {
 	if offset + SIZE_LIST_NODE > len(data) {
-		return nil, offset, io.ErrUnexpectedEOF
+		return nil, io.ErrUnexpectedEOF
 	}
 
 	prevPage := binary.BigEndian.Uint32(data[offset:])
@@ -42,5 +43,5 @@ func NewListNode(data []byte, offset int) (*ListNode, int, error) {
 		PrevOffset:     prevOff,
 		NextPageNumber: nextPage,
 		NextOffset:     nextOff,
-	}, offset, nil
+	}, nil
 }
