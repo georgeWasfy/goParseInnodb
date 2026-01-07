@@ -7,7 +7,7 @@ import (
 const (
 	// File Trailer
 	FIL_Trailer_START = 16376
-	FIL_Trailer_SIZE  = 8
+	FIL_TRAILER_SIZE  = 8
 
 )
 
@@ -17,7 +17,7 @@ type FilTrailer struct {
 }
 
 func NewFilTrailer(data []byte) (*FilTrailer,error) {
-		if len(data) < FIL_Trailer_SIZE {
+		if len(data) < FIL_TRAILER_SIZE {
 		return nil, fmt.Errorf("data too short for fil trailer: got %d bytes", len(data))
 	}
 

@@ -3,9 +3,10 @@ package innodb
 import (
 	"os"
 	"io"
+	"fmt"
 )
 
-const PageSize = 16384
+const PAGE_SIZE = 16384
 
 type Space struct {
 	Path  string
@@ -25,14 +26,14 @@ func OpenSpace(path string) (*Space, error) {
 	return &Space{
 		Path:  path,
 		Size:  size,
-		Pages: size / PageSize,
+		Pages: size / PAGE_SIZE,
 	}, nil
 }
 
 func (s *Space) OpenPage(pageNumber int64) (*Page, error) {
-	offset := pageNumber * PageSize
+	offset := pageNumber * PAGE_SIZE
 
-	if offset < 0 || offset+PageSize > s.Size {
+	if offset < 0 || offset+PAGE_SIZE > s.Size {
 		return nil, nil
 	}
 
@@ -42,14 +43,17 @@ func (s *Space) OpenPage(pageNumber int64) (*Page, error) {
 	}
 	defer f.Close()
 
-	buf := make([]byte, PageSize)
+	buf := make([]byte, PAGE_SIZE)
 
 	_, err = f.ReadAt(buf, offset)
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
-
-	return NewPage(buf), nil
+	page, err := NewPage(buf)
+	if err != nil {
+		return nil, fmt.Errorf("page parse failed: %w", err)
+	}
+	return page, nil
 }
 
 func (s *Space) IteratePages() <-chan PageWrapper {

@@ -1,5 +1,9 @@
 package innodb
 
+import (
+	"fmt"
+)
+
 type PageType uint16
 type Page struct {
 	Data []byte  // full 16 KB
@@ -11,8 +15,26 @@ type PageWrapper struct {
 	Page   *Page
 	Err    error
 }
-func NewPage(data []byte) *Page {
-	return &Page{Data: data}
+func NewPage(data []byte) (*Page, error) {
+	if len(data) < PAGE_SIZE {
+		return nil, fmt.Errorf("page data too short: got %d bytes", len(data))
+	}
+
+	filHeader, err := NewFilHeader(data)
+	if err != nil {
+		return nil, fmt.Errorf("fil header parse failed: %w", err)
+	}
+
+	filTrailer, err := NewFilTrailer(data[len(data)-FIL_TRAILER_SIZE:])
+	if err != nil {
+		return nil, fmt.Errorf("fil trailer parse failed: %w", err)
+	}
+
+	return &Page{
+		Data:       data,
+		FilHeader:  filHeader,
+		FilTrailer: filTrailer,
+	}, nil
 }
 const (
 	PageTypeAllocated     PageType = 0

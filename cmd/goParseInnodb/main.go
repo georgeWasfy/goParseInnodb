@@ -11,7 +11,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("Total Pages:", space.Pages)
 
-	fmt.Println("Pages:", space.Pages)
+	for page := range space.IteratePages() {
+		if page.Err != nil {
+			panic(page.Err)
+		}
+		fmt.Println(page.Page.FilTrailer)
+	}
 
 }
